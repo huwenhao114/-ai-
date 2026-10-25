@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>校园学习助手 - 期末项目汇报</title>
+<style>
+  body { font-family: "Microsoft YaHei", sans-serif; margin: 0; padding: 0; background: #fff; color: #000; }
+  .slide { width: 100%; min-height: 100vh; padding: 40px 60px; box-sizing: border-box; page-break-after: always; border-bottom: 1px solid #ccc; }
+  h1 { font-size: 42px; }
+  h2 { font-size: 32px; border-bottom: 2px solid #333; padding-bottom: 8px; }
+  h3 { font-size: 24px; }
+  p, li { font-size: 20px; line-height: 1.6; }
+  ul { padding-left: 24px; }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-size: 18px; }
+  pre { background: #f0f0f0; padding: 12px; overflow-x: auto; font-size: 16px; }
+  table { border-collapse: collapse; width: 100%; font-size: 18px; }
+  th, td { border: 1px solid #999; padding: 8px 12px; text-align: left; }
+  th { background: #eee; }
+  img { max-width: 100%; border: 1px solid #999; }
+  .nav { position: fixed; bottom: 20px; right: 20px; }
+  .nav button { font-size: 16px; padding: 8px 16px; margin: 0 4px; cursor: pointer; }
+  .small { font-size: 16px; color: #555; }
+</style>
+</head>
+<body>
+
+<!-- 第1页 封面 -->
+<div class="slide">
+  <h1>校园学习助手</h1>
+  <p style="font-size:24px;">基于 LangChain + 阿里百炼的智能学习助理</p>
+  <p>《开源 AI 技术实践》期末考查 · 路径 A</p>
+  <p>汇报人：XXX &nbsp;&nbsp; 学号：XXXXXXXX</p>
+  <p>2026 年 10 月</p>
+</div>
+
+<!-- 第2页 项目介绍 -->
+<div class="slide">
+  <h2>一、项目介绍</h2>
+  <p>「校园学习助手」是一个面向在校大学生的智能体应用。</p>
+  <p>学生用自然语言提问，智能体自动调用工具完成任务，并把学习计划、成绩报告等产出物保存为文件。</p>
+  <h3>解决的痛点</h3>
+  <ul>
+    <li>课程信息分散在不同平台，查课不方便</li>
+    <li>多门课作业截止日期记不住</li>
+    <li>想复习但不知道怎么安排学习计划</li>
+    <li>拿到成绩不知道薄弱环节在哪</li>
+  </ul>
+  <h3>选题方向</h3>
+  <p>课程助教（属于期末要求第三节推荐选题列表）</p>
+</div>
+
+<!-- 第3页 技术栈 -->
+<div class="slide">
+  <h2>二、技术栈</h2>
+  <table>
+    <tr><th>类别</th><th>选型</th><th>说明</th></tr>
+    <tr><td>大模型</td><td>阿里百炼 Qwen（qwen-plus）</td><td>通过 OpenAI 兼容接口调用</td></tr>
+    <tr><td>Agent 框架</td><td>LangChain</td><td>create_tool_calling_agent，支持工具调用</td></tr>
+    <tr><td>Web 界面</td><td>Streamlit</td><td>聊天界面 + 工具调用可视化</td></tr>
+    <tr><td>自定义工具</td><td>4 个</td><td>课程查询、作业提醒、学习计划生成、成绩分析</td></tr>
+    <tr><td>Skill</td><td>1 个</td><td>study-plan-writer（学习计划编写规范）</td></tr>
+    <tr><td>会话持久化</td><td>JSON 文件</td><td>保存/加载多轮对话历史</td></tr>
+    <tr><td>产出物</td><td>Markdown 文件</td><td>学习计划、成绩报告写入 output 目录</td></tr>
+  </table>
+  <p class="small">满足路径 A 最低配置全部 7 项 + 长期记忆（AGENTS.md）加分项。</p>
+</div>
+
+<!-- 第4页 系统架构 -->
+<div class="slide">
+  <h2>三、系统架构</h2>
+  <pre>用户 → Streamlit 界面 → LangChain Agent → 工具 / 模型 / Skill
+                                          ↓
+                                    output/ 产出文件</pre>
+  <h3>模块说明</h3>
+  <ul>
+    <li><code>app.py</code>：Streamlit 主界面，聊天、工具调用展示、会话管理</li>
+    <li><code>agent.py</code>：Agent 核心，配置阿里百炼模型、绑定工具、多轮对话</li>
+    <li><code>tools/</code>：4 个自定义工具</li>
+    <li><code>skills/study-plan-writer/SKILL.md</code>：学习计划编写规范</li>
+    <li><code>data/courses.json</code>：示例课程、成绩、作业数据</li>
+    <li><code>AGENTS.md</code>：长期记忆</li>
+  </ul>
+</div>
+
+<!-- 第5页 工具介绍 -->
+<div class="slide">
+  <h2>四、自定义工具（4 个）</h2>
+  <h3>1. query_courses — 课程查询</h3>
+  <p>按课程名 / 教师 / 编号搜索，返回课程信息、上课时间、教学大纲。</p>
+  <pre>query_courses(keyword="开源AI")</pre>
+
+  <h3>2. get_upcoming_assignments — 作业提醒</h3>
+  <p>查询未来 N 天内即将截止的作业，显示剩余天数。</p>
+  <pre>get_upcoming_assignments(days=30)</pre>
+
+  <h3>3. create_study_plan — 学习计划生成</h3>
+  <p>根据课程、周数、重点生成学习计划，写入 output 目录。</p>
+  <pre>create_study_plan("数据结构", weeks=4, focus="图")</pre>
+
+  <h3>4. analyze_grades — 成绩分析</h3>
+  <p>分析成绩，识别薄弱课程，给出建议，生成分析报告。</p>
+  <pre>analyze_grades(student_id="20240001")</pre>
+</div>
+
+<!-- 第6页 Skill 介绍 -->
+<div class="slide">
+  <h2>五、Skill：学习计划编写规范</h2>
+  <p>文件位置：<code>skills/study-plan-writer/SKILL.md</code></p>
+  <h3>Skill 内容</h3>
+  <ul>
+    <li>定义学习计划的结构规范（6 个必备部分：标题、元信息、学习目标、分周安排、复习检测、免责声明）</li>
+    <li>规范每周任务设计（阅读、笔记、练习、回顾四类）</li>
+    <li>提供质量检查清单</li>
+    <li>指导 Agent 如何与用户交互</li>
+  </ul>
+  <h3>Skill 与系统提示词的区别</h3>
+  <p>系统提示词管全局行为（角色、边界）；Skill 是可复用的领域知识包，独立维护，管具体任务的专业规范。</p>
+</div>
+
+<!-- 第7页 系统运行截图 - 主界面 -->
+<div class="slide">
+  <h2>六、系统运行截图（1）— 主界面</h2>
+  <img src="screenshots/ui_main.png" alt="主界面">
+  <p class="small">左侧：可用工具列表、会话管理、模型配置；右侧：聊天对话区。</p>
+</div>
+
+<!-- 第8页 系统运行截图 - 聊天输入 -->
+<div class="slide">
+  <h2>六、系统运行截图（2）— 聊天输入</h2>
+  <img src="screenshots/ui_chat.png" alt="聊天输入">
+  <p class="small">用户用自然语言输入问题，如「帮我查一下开源AI技术实践这门课」。</p>
+</div>
+
+<!-- 第9页 系统运行截图 - 完整对话 -->
+<div class="slide">
+  <h2>六、系统运行截图（3）— 对话与工具调用</h2>
+  <img src="screenshots/ui_full.png" alt="完整对话">
+  <p class="small">Agent 接收消息后自动判断意图并调用对应工具，界面可展开查看工具调用的输入参数与返回结果。</p>
+</div>
+
+<!-- 第10页 阿里百炼配置方法 -->
+<div class="slide">
+  <h2>七、使用阿里百炼的方法</h2>
+  <h3>步骤 1：获取 API Key</h3>
+  <ol>
+    <li>登录 https://bailian.console.aliyun.com/</li>
+    <li>左侧菜单「模型服务」→「API-KEY 管理」</li>
+    <li>点击「创建新的 API-KEY」，复制生成的 Key</li>
+  </ol>
+  <h3>步骤 2：配置到项目</h3>
+  <pre>copy .env.example .env</pre>
+  <p>编辑 <code>.env</code> 文件：</p>
+  <pre>DASHSCOPE_API_KEY=sk-你的真实Key
+LLM_MODEL=qwen-plus
+OPENAI_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1</pre>
+  <h3>步骤 3：启动</h3>
+  <pre>streamlit run app.py</pre>
+</div>
+
+<!-- 第11页 与课堂实验的关系 -->
+<div class="slide">
+  <h2>八、与课堂实验的关系</h2>
+  <table>
+    <tr><th>课堂实验</th><th>用到的能力</th><th>本项目增量</th></tr>
+    <tr><td>demo_1</td><td>模型调用 + Streamlit</td><td>扩展为多工具 Agent</td></tr>
+    <tr><td>demo_2</td><td>OpenAI 兼容接口 + 工具调用</td><td>落地阿里百炼，4 个工具协同</td></tr>
+    <tr><td>demo_3</td><td>云端模型 + 密钥管理</td><td>.env + .gitignore 规范管理</td></tr>
+    <tr><td>demo_5</td><td>Agent 框架 + Skills + WebUI</td><td>新增学习计划 Skill、会话保存、文件产出</td></tr>
+  </table>
+  <h3>自己写的关键代码（3 处）</h3>
+  <ul>
+    <li><code>tools/study_plan_tools.py</code> — 学习计划生成工具</li>
+    <li><code>tools/grade_tools.py</code> — 成绩分析工具</li>
+    <li><code>skills/study-plan-writer/SKILL.md</code> — 学习计划编写规范</li>
+  </ul>
+</div>
+
+<!-- 第12页 思政合规与不足 -->
+<div class="slide">
+  <h2>九、思政与合规</h2>
+  <ul>
+    <li>所有课程、成绩、作业均为虚构示例数据，不涉及真实学生信息</li>
+    <li>API Key 通过 .env 管理，不进 Git 仓库</li>
+    <li>涉及成绩、制度时提示「以官方为准」</li>
+    <li>不代写作业、不提供考试答案</li>
+  </ul>
+
+  <h2>十、不足与后续改进</h2>
+  <ul>
+    <li>当前不足：课程数据为本地 JSON，未对接真实教务 API；未实现流式输出</li>
+    <li>后续改进：对接教务系统 API；增加教室查询、图书检索等工具；引入长期记忆</li>
+  </ul>
+
+  <h2>谢谢</h2>
+  <p>GitHub 仓库：（填写链接）</p>
+</div>
+
+<!-- 导航按钮 -->
+<div class="nav">
+  <button onclick="prevSlide()">上一页</button>
+  <button onclick="nextSlide()">下一页</button>
+</div>
+
+<script>
+  var slides = document.querySelectorAll('.slide');
+  var current = 0;
+  function show(i) {
+    slides.forEach(function(s, idx) { s.style.display = (idx === i) ? 'block' : 'none'; });
+    current = i;
+    window.scrollTo(0, 0);
+  }
+  function nextSlide() { if (current < slides.length - 1) show(current + 1); }
+  function prevSlide() { if (current > 0) show(current - 1); }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
+  });
+  show(0);
+</script>
+
+</body>
+</html>
